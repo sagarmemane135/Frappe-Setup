@@ -47,6 +47,35 @@ docker run -d --name frappe-dev-container `
 
 **Note:** For Linux/Mac, replace `${PWD}` with `$(pwd)` and remove the backticks (`` ` ``).
 
+### 4. Wait for Initialization (Important!)
+
+⏱️ **The command will return immediately, but the container needs time to initialize!**
+
+On first run, the container performs these operations:
+1. **Copies ~30,000 files** from the Docker image to your local volumes (5-10 minutes on Windows, 2-3 minutes on Linux/Mac)
+2. **Initializes MariaDB** and creates databases
+3. **Creates your Frappe site** with the specified name
+4. **Starts the bench development server**
+
+**Monitor the initialization progress:**
+```powershell
+docker logs -f frappe-dev-container
+```
+
+**Look for this message indicating the site is ready:**
+```
+------------------------------------------------
+Site menumate.localhost is ready. Starting bench...
+------------------------------------------------
+```
+
+**Then wait for bench to start and show:**
+```
+ * Running on http://0.0.0.0:8000
+```
+
+Only after seeing these messages, access your site at `http://localhost:8000`. This process typically takes **5-10 minutes** on the first run. Subsequent container starts are instant as the files are already synced.
+
 ---
 
 ## ⚙️ Arguments (Environment Variables)
@@ -160,10 +189,19 @@ The initial sync of ~30,000 files to Windows volumes can take 5-10 minutes. Subs
 
 ### Can't Access Site After Installation
 
-1. Ensure the container is running: `docker ps`
-2. Wait for initialization to complete (check logs)
-3. Try accessing `http://localhost:8000` or `http://127.0.0.1:8000`
-4. Check that your `SITE_NAME` matches the URL you're accessing
+**Most Common Issue:** You didn't wait long enough for initialization to complete!
+
+1. **Check if container is running:** `docker ps`
+2. **Monitor logs for initialization status:**
+   ```powershell
+   docker logs -f frappe-dev-container
+   ```
+3. **Wait for these key messages:**
+   - `Site menumate.localhost is ready. Starting bench...`
+   - `* Running on http://0.0.0.0:8000`
+4. **First run takes 5-10 minutes** - be patient! The container is copying thousands of files.
+5. After initialization completes, try accessing `http://localhost:8000` or `http://127.0.0.1:8000`
+6. Verify your `SITE_NAME` environment variable matches the URL
 
 ### Database Connection Issues
 
