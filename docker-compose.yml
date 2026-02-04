@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  frappe-dev:
+    image: memanes688/frappe-dev:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: frappe-dev-container
+    ports:
+      - "8000:8000"    # Frappe web interface
+    environment:
+      - SITE_NAME=frappe.localhost
+      - ADMIN_PASSWORD=admin
+      - DB_ROOT_PASSWORD=root
+    volumes:
+      - ./mariadb-data:/var/lib/mysql
+      - ./apps:/home/frappe/frappe-bench/apps
+      - ./sites:/home/frappe/frappe-bench/sites
+      - ./logs:/home/frappe/frappe-bench/logs
+    restart: unless-stopped
+    networks:
+      - frappe-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+networks:
+  frappe-network:
+    driver: bridge
